@@ -1,0 +1,418 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+#  PhD Radar – list of sources
+#
+#  This is the only file you need to edit to add or remove a source.
+#  Each entry starts with "- name:". The fields are:
+#
+#    name        unique label shown on the dashboard                   (required)
+#    url         the page to read; can also be a list of pages         (required)
+#    type        html   – a page listing postings (default)
+#                rss    – an RSS/Atom feed
+#                watch  – a single page (graduate school, group, call) that is
+#                         checked for changes; new lines are shown on the dashboard
+#    kind        position (default) | school | group   – just for grouping
+#    country     used when a posting does not name a country itself
+#    filter      what a posting must mention to be kept (default [phd, math]):
+#                  phd   – a doctoral term (PhD, doctoral, Doktorand, dottorato…)
+#                  math  – a mathematics term
+#                  topic – at least one keyword of one of you (see profiles.yaml)
+#    details     true = open each new posting to read its full text (better
+#                scoring and deadlines); max_details caps how many per run (20)
+#    link_pattern  regular expression the posting links must match, e.g. /jobs/\d+
+#    links: raw    find links anywhere in the page source (sitemaps, JS pages)
+#    item / link   CSS selectors for listing cards and their link (optional;
+#                  without them every link on the page is considered)
+#    pages / page_param / page_start   follow pagination (?page=1, ?page=2…)
+#    europe_only true = drop postings that do not mention a European country
+#    enabled     false = keep the entry but skip it
+#
+#  Simplest possible new source (a department page to watch):
+#
+#    - name: Utrecht – Mathematics vacancies
+#      type: watch
+#      url: https://example.org/vacancies
+#      kind: school
+#
+#  Or just ask Claude: "add this source: <url>".
+# ═══════════════════════════════════════════════════════════════════════════════
+
+defaults:
+  delay: 2          # seconds between two requests to the same website
+
+sources:
+
+# ─── Europe-wide job boards ────────────────────────────────────────────────────
+
+  - name: EURAXESS – Mathematics, first-stage researchers
+    url:
+      - https://euraxess.ec.europa.eu/jobs/search?f%5B0%5D=job_research_field%3A298&f%5B1%5D=job_research_profile%3A447
+      - https://euraxess.ec.europa.eu/jobs/search?f%5B0%5D=job_research_field%3A299&f%5B1%5D=job_research_profile%3A447
+      - https://euraxess.ec.europa.eu/jobs/search?f%5B0%5D=job_research_field%3A306&f%5B1%5D=job_research_profile%3A447
+    item: article.ecl-content-item
+    link: h3 a
+    pages: 3
+    filter: [phd]
+    details: true
+    max_details: 40
+
+  - name: EURAXESS – keyword search
+    url:
+      - https://euraxess.ec.europa.eu/jobs/search?keywords=topology
+      - https://euraxess.ec.europa.eu/jobs/search?keywords=knot
+      - https://euraxess.ec.europa.eu/jobs/search?keywords=homotopy
+    item: article.ecl-content-item
+    link: h3 a
+    filter: [phd, math, topic]
+    details: true
+
+  - name: EMS job portal
+    url: https://euromathsoc.org/jobs
+    link_pattern: /jobs/[^/?]+-\d+$
+    filter: [phd]
+    details: true
+
+  - name: MathHire (EMS/DMV)
+    url: https://mathhire.org/jobs/academia
+    link_pattern: /jobs/\d+
+    filter: [phd]
+    details: true
+
+  - name: MathJobs (AMS) – European PhD ads
+    url: https://www.mathjobs.org/jobs/job
+    link_pattern: /jobs/list/\d+
+    filter: [phd]
+    europe_only: true
+    details: true
+    max_details: 30
+
+  - name: AcademicJobsOnline – Mathematics
+    url: https://academicjobsonline.org/ajo/Mathematics
+    link_pattern: /ajo/jobs/\d+
+    filter: [phd]
+    europe_only: true
+    details: true
+
+  - name: Nature Careers – Maths PhD positions in Europe
+    url: https://www.nature.com/naturecareers/jobs/mathematics/phd-position/europe/
+    link_pattern: /naturecareers/job/\d+
+    filter: [phd, math]
+    details: true
+
+  - name: Times Higher Education – Maths PhDs
+    url: https://www.timeshighereducation.com/unijobs/listings/phd/mathematics/
+    link_pattern: /unijobs/listing/\d+
+    filter: [phd, math]
+    details: true
+
+  - name: Science Careers – Maths in Europe
+    url: https://jobs.sciencecareers.org/jobs/mathematics/europe/
+    link_pattern: /job/\d+
+    filter: [phd, math]
+    details: true
+
+  - name: EuroScienceJobs – Mathematics
+    url: https://www.eurosciencejobs.com/jobs/mathematics
+    link_pattern: /job_display/\d+
+    filter: [phd, math]
+    details: true
+
+  - name: myScience – Mathematics (Europe)
+    url:
+      - https://www.myscience.org/en/jobs/Mathematics
+      - https://www.myscience.de/en/jobs/Mathematics
+      - https://www.myscience.ch/en/jobs/Mathematics
+    link_pattern: /jobs/id\d+
+    title_from_page: true
+    filter: [phd, math]
+    europe_only: true
+    details: true
+    max_details: 30
+
+  - name: cvgmt (Pisa) positions board
+    url: https://cvgmt.sns.it/positions/
+    link_pattern: /position/\d+/
+    filter: [phd]
+    details: true
+
+# ─── National portals ──────────────────────────────────────────────────────────
+
+  - name: jobs.ac.uk – maths & topology PhDs (UK, Ireland)
+    url:
+      - https://www.jobs.ac.uk/search/?keywords=phd+mathematics
+      - https://www.jobs.ac.uk/search/?keywords=topology
+      - https://www.jobs.ac.uk/search/?keywords=knot+theory
+      - https://www.jobs.ac.uk/search/?keywords=pure+mathematics+studentship
+    link_pattern: /job/[A-Z0-9]+/
+    country: United Kingdom
+    filter: [phd, math]
+    details: true
+    max_details: 30
+
+  - name: AcademicTransfer (Netherlands)
+    url: https://www.academictransfer.com/sitemap-vacancies.xml
+    links: raw
+    link_pattern: /en/jobs/\d+/[^/]*(phd|doctor|promov|predoc)[^/]*/
+    country: Netherlands
+    filter: [phd, math]
+    details: true
+    max_details: 40
+
+  - name: MUR – Italian PhD calls (maths & computer science area)
+    url: https://bandi.mur.gov.it/doctorate.php/public/cercaFellowship?jf_comp_status_id=2-3&bb_type_code=%25&idarea=01&azione=cerca
+    link_pattern: /doctorate\.php/public/fellowship/id_fellow/\d+
+    country: Italy
+    kind: school
+    filter: []
+    details: true
+    max_details: 40
+
+  - name: ADUM – French thesis offers
+    url: https://adum.fr/as/ed/propositionFR.pl
+    link_pattern: voirproposition\.pl
+    country: France
+    filter: [math]
+    listing_filter: []
+    details: true
+    max_details: 40
+
+# ─── University job portals ────────────────────────────────────────────────────
+
+  - name: ETH Zurich jobs
+    url: https://jobs.ethz.ch/?lang=en
+    link_pattern: /job/view/
+    country: Switzerland
+    filter: [phd, math]
+    details: true
+    max_details: 30
+
+  - name: University of Copenhagen – PhD positions
+    url: https://employment.ku.dk/phd/
+    link_pattern: /phd/\?show=\d+
+    country: Denmark
+    filter: [phd, math]
+    details: true
+    max_details: 30
+
+  - name: Uppsala University jobs
+    url: https://www.uu.se/en/about-uu/join-us/jobs
+    link_pattern: job-details\?query=\d+
+    country: Sweden
+    filter: [phd, math]
+    details: true
+    max_details: 30
+
+  - name: Stockholm University jobs (Varbi)
+    url: https://su.varbi.com/en/
+    link_pattern: what:job/jobID:\d+
+    country: Sweden
+    filter: [phd, math]
+    details: true
+    max_details: 30
+
+  - name: Lund University jobs (Varbi)
+    url: https://lu.varbi.com/en/
+    link_pattern: what:job/jobID:\d+
+    country: Sweden
+    filter: [phd, math]
+    details: true
+    max_details: 30
+
+  - name: KTH jobs (Varbi)
+    url: https://kth.varbi.com/en/
+    link_pattern: what:job/jobID:\d+
+    country: Sweden
+    filter: [phd, math]
+    details: true
+    max_details: 30
+
+  - name: Max Planck Institute for Mathematics – jobs
+    type: watch
+    url: https://www.mpim-bonn.mpg.de/Karriere
+    kind: school
+    country: Germany
+
+  - name: Hamburg – Mathematics job offers
+    url: https://www.math.uni-hamburg.de/info/jobs/index.html
+    country: Germany
+    filter: [phd]
+    details: true
+
+  - name: Oxford – Mathematical Institute vacancies
+    url: https://www.maths.ox.ac.uk/vacancies
+    country: United Kingdom
+    filter: [phd]
+    details: true
+
+# ─── Graduate schools and PhD programmes (watched for changes) ─────────────────
+
+  - name: Leipzig – IMPRS Mathematics in the Sciences (MPI MiS)
+    type: watch
+    url: https://www.mis.mpg.de/career/imprs
+    kind: school
+    country: Germany
+
+  - name: Utrecht Geometry Centre – PhD programme
+    type: watch
+    url: https://utrechtgeometrycentre.nl/phd/
+    kind: school
+    country: Netherlands
+
+  - name: Bonn – HSM / BIGS PhD admission
+    type: watch
+    url: https://www.mathematics.uni-bonn.de/hsm-school/phd-admission
+    kind: school
+    country: Germany
+
+  - name: Bonn – IMPRS Moduli Spaces (MPIM)
+    type: watch
+    url: https://www.mpim-bonn.mpg.de/node/79
+    kind: school
+    country: Germany
+
+  - name: Berlin Mathematical School
+    type: watch
+    url: https://www.math-berlin.de/
+    kind: school
+    country: Germany
+
+  - name: Münster – Mathematics calls and applications
+    type: watch
+    url: https://www.uni-muenster.de/MathematicsMuenster/careers/apply/index.shtml
+    kind: school
+    country: Germany
+
+  - name: Regensburg – SFB Higher Invariants positions
+    type: watch
+    url: https://sfb-higher-invariants.app.uni-regensburg.de/index.php?title=Positions
+    kind: group
+    country: Germany
+
+  - name: ETH D-MATH – open positions
+    type: watch
+    url: https://math.ethz.ch/the-department/open-positions.html
+    kind: school
+    country: Switzerland
+
+  - name: ETH/UZH – Zurich Graduate School admission
+    type: watch
+    url: https://math.ethz.ch/doctorate/admission.html
+    kind: school
+    country: Switzerland
+
+  - name: Geneva – Mathematics section jobs
+    type: watch
+    url: https://www.unige.ch/math/la-section/jobs
+    kind: school
+    country: Switzerland
+
+  - name: EPFL – EDMA doctoral programme
+    type: watch
+    url: https://www.epfl.ch/education/phd/edma-mathematics/
+    kind: school
+    country: Switzerland
+
+  - name: ISTA (Austria) – Graduate School
+    type: watch
+    url: https://phd.ista.ac.at/
+    kind: school
+    country: Austria
+
+  - name: Copenhagen – Mathematics vacancies
+    type: watch
+    url: https://www.math.ku.dk/english/about/jobs/
+    kind: school
+    country: Denmark
+
+  - name: Aarhus – Natural Sciences open PhD calls
+    type: watch
+    url: https://phd.nat.au.dk/for-applicants/open-calls/
+    kind: school
+    country: Denmark
+
+  - name: Stockholm – Mathematics, work with us
+    type: watch
+    url: https://www.su.se/english/divisions/department-of-mathematics/about-the-department/work-with-us
+    kind: school
+    country: Sweden
+
+  - name: Oxford – DPhil in Mathematics
+    type: watch
+    url: https://www.maths.ox.ac.uk/study-here/postgraduate-study/doctor-philosophy-dphil
+    kind: school
+    country: United Kingdom
+
+  - name: LSGNT – London School of Geometry and Number Theory
+    type: watch
+    url: https://lsgnt-cdt.ac.uk/
+    kind: school
+    country: United Kingdom
+
+  - name: Glasgow – Mathematics PhD opportunities
+    type: watch
+    url: https://www.gla.ac.uk/postgraduate/research/mathematics/
+    kind: school
+    country: United Kingdom
+
+  - name: Edinburgh – Algebra, Geometry and Topology PhD
+    type: watch
+    url: https://study.ed.ac.uk/programmes/postgraduate-research/1132-algebra-geometry-and-topology
+    kind: school
+    country: United Kingdom
+
+  - name: Warwick – Maths PhD funding
+    type: watch
+    url: https://warwick.ac.uk/fac/sci/maths/studywithus/postgraduateresearch/studentships/
+    kind: school
+    country: United Kingdom
+
+  - name: SISSA – PhD admission
+    type: watch
+    url: https://www.sissa.it/phd-admission
+    kind: school
+    country: Italy
+
+  - name: Scuola Normale – PhD admission competition
+    type: watch
+    url: https://www.sns.it/en/phd-admission-competition
+    kind: school
+    country: Italy
+
+  - name: Pisa – PhD in Mathematics
+    type: watch
+    url: https://www.dm.unipi.it/phd/
+    kind: school
+    country: Italy
+
+  - name: Roma Tor Vergata – PhD in Mathematics
+    type: watch
+    url: https://www.mat.uniroma2.it/dottorato/
+    kind: school
+    country: Italy
+
+  - name: MathPhDInFrance (FSMP cofund)
+    type: watch
+    url: https://mathphdinfrance.fr/
+    kind: school
+    country: France
+
+  - name: Paris-Saclay – Orsay maths PhD programme
+    type: watch
+    url: https://www.imo.universite-paris-saclay.fr/en/students/phd/
+    kind: school
+    country: France
+
+  - name: Warsaw Doctoral School of Mathematics and CS
+    type: watch
+    url: https://www.mimuw.edu.pl/en/studies/phd-studies/
+    kind: school
+    country: Poland
+
+# ─── Research groups ───────────────────────────────────────────────────────────
+#  Group pages rarely announce positions, so only a few are watched here. Postings
+#  that name one of your researchers (profiles.yaml) are boosted wherever they appear.
+
+  - name: Glasgow – Core Structures group, PhD info
+    type: watch
+    url: http://core.maths.gla.ac.uk/PhD
+    kind: group
+    country: United Kingdom

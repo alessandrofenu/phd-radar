@@ -1,0 +1,135 @@
+# Who the radar searches for, and how postings are scored.
+#
+# Keyword matching is case-insensitive and ignores hyphens, and a keyword also
+# matches longer words that start with it ("operad" matches "operads").
+# A posting's score for a person is the sum of the weights of every distinct
+# keyword it mentions; mentions in the title count double.
+
+profiles:
+  me:
+    name: Alessandro
+    keywords:
+      configuration space: 10
+      konfigurationsr: 10          # German: Konfigurationsraum/-räume
+      espaces de configuration: 10
+      spazi di configurazione: 10
+      algebraic topology: 8
+      algebraische topologie: 8
+      topologie algébrique: 8
+      topologia algebrica: 8
+      homotopy theory: 7
+      homotopy: 5
+      homotopie: 5
+      operad: 6
+      little disks: 6
+      little discs: 6
+      e_n algebra: 6
+      en algebra: 4
+      factorization homology: 6
+      braid group: 6
+      mapping class group: 5
+      hyperplane arrangement: 5
+      rational homotopy: 7
+      stable homotopy: 6
+      higher category: 3
+      infinity categor: 3
+      manifold calculus: 6
+      embedding calculus: 6
+      diffeomorphism group: 5
+      moduli space: 3
+      homological stability: 7
+      cohomology: 2
+      topology: 1
+      topologie: 1
+      topologia: 1
+    # Full names only: surnames alone collide with ordinary words.
+    researchers: [Thomas Willwacher, Paolo Salvatore, Alexander Berglund, Dan Petersen,
+      Najib Idrissi, Martin Palmer, Ulrike Tillmann, Oscar Randal-Williams, Søren Galatius,
+      Nathalie Wahl, Manuel Krannich, Andrea Bianchi, Gijs Heuts, Pedro Boavida de Brito,
+      Michael Weiss, Geoffroy Horel, Muriel Livernet, Benoit Fresse, Filippo Callegaro,
+      Mario Salvetti, Giovanni Gaiffi, Emanuele Delucchi, Roberto Pagaria, Orsola Tommasi,
+      Birgit Richter, Jesper Grodal, Kathryn Hess, Ricardo Campos, Markus Land, Lukas Brantner,
+      Sadok Kallel, Julien Ducoulombier, Wolfgang Steimle, Ieke Moerdijk]
+    researcher_weight: 8
+
+  her:
+    name: Girlfriend
+    keywords:
+      khovanov: 10
+      link homology: 9
+      knot homolog: 9
+      knot theory: 9
+      knotentheorie: 9
+      théorie des nœuds: 9
+      theorie des noeuds: 9
+      teoria dei nodi: 9
+      knot: 5
+      knoten: 4
+      low dimensional topology: 9
+      lowdimensional topology: 9
+      low dimensional geometry: 6
+      3 manifold: 6
+      4 manifold: 6
+      three manifold: 6
+      four manifold: 6
+      heegaard floer: 7
+      floer homology: 6
+      instanton: 4
+      categorification: 7
+      categorified: 6
+      quantum invariant: 7
+      quantum topology: 8
+      skein: 6
+      tqft: 5
+      topological quantum field: 5
+      braid group: 4
+      mapping class group: 4
+      contact topology: 4
+      soergel: 4
+      topology: 1
+      topologie: 1
+      topologia: 1
+    researchers: [Mikhail Khovanov, Paul Wedrich, Catharina Stroppel, Marco Mackaay, Pedro Vaz,
+      Dirk Schütz, Andrew Lobb, Jacob Rasmussen, Marc Lackenby, András Juhász, Brendan Owens,
+      Anna Beliakova, Paul Turner, Emmanuel Wagner, Louis-Hadrien Robert, Lukas Lewark,
+      Peter Feller, Stefan Friedl, Claudius Zibrowius, Hoel Queffelec, Christian Blanchet,
+      Roland van der Veen, Maciej Borodzik, Paolo Lisca, Bruno Martelli, Marco Golla,
+      Gwénaël Massuyeau, András Stipsicz, Marco Marengon, Sarah Rasmussen, Ian Zemke,
+      Jonathan Hanselman, Dorothy Buck, Ana Lecuona, Duncan McCoy, Raphael Zentner,
+      Julien Marché, Francesco Costantino, Arnaud Mortier, Krzysztof Putyra]
+    researcher_weight: 8
+
+# Terms that identify a doctoral position (any language). Matching is by word prefix.
+phd_terms: [phd, ph d, dphil, doctoral, doctorate, doktorand, doktorat, promotion, promovend,
+  promotie, promotieplaats, doctorat, doctorant, thèse, dottorato, dottorand, doctorado,
+  doctoranda, doutoramento, predoc, pre doc, early stage researcher, esr, first stage researcher,
+  studentship, research student, stipendiat, doktorgrad, doktorandtjänst, väitöskirja,
+  graduate school, graduate program, doctoral school, doctoral candidate, doctoral researcher,
+  msca doctoral, doctoral network, bando, bigs, imprs]
+
+# Terms that identify mathematics. A posting counts as mathematics if one of these appears in
+# its title or listing text, or at least 3 times in its full text.
+math_terms: [mathemat, matemat, mathématique, wiskunde, topolog, algebra, geometr, homotop,
+  homology, cohomolog, knot, manifold, number theory, combinatoric, category theory,
+  representation theory, differential equation, probability theory]
+
+# Phrases that, in the full text of a posting, show it really is a doctoral position
+# (a bare "PhD" there is not enough: faculty ads say "PhD required").
+phd_body_terms: [phd position, phd student, phd candidate, phd fellow, phd scholarship,
+  phd studentship, phd project, phd programme, phd program, phd research fellow, phd stipend,
+  phd opportunit, doctoral student, doctoral candidate, doctoral position, doctoral researcher,
+  doctoral fellow, doctoral programme, doctoral program, doctoral school, doctoral contract,
+  doktorand, promotionsstelle, promotionsstudent, studentship, dottorato, borsa di dottorato,
+  contrat doctoral, doctorant, sujet de these, promovend, promotieplaats, stipendiat, predoc,
+  praedoc, prae doc, early stage researcher, doctoraatsbursaal, doktorandtjanst]
+
+# If a title contains one of these and no phd term, the posting is dropped.
+exclude_title_terms: [postdoc, post doc, postdoctoral, post doctoral, professor, professur,
+  lecturer, tenure, habilitation, senior, research associate, research fellow, fellowship for
+  experienced, principal investigator, group leader, laboratory technician, administrat,
+  secretary, manager, engineer, software, marie curie postdoctoral, professeur,
+  maitre de conferences, educator, teacher, contract, coding expert, benchmark specialist]
+
+# A title containing one of these is always dropped, even if it also mentions a PhD.
+hard_exclude_title_terms: [with doctorate, mit doktorat, with a doctorate, rank of professor,
+  professorship, post doctoral, postdoctoral, postdoc, coding expert, benchmark specialist]

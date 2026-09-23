@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>PhD Radar</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='none' stroke='%232f6f5e' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%232f6f5e' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%232f6f5e'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #f6f4ef; --panel: #ffffff; --ink: #1f2328; --muted: #6b6f76; --line: #e3dfd6;
+  --accent: #2f6f5e; --accent-soft: #e2efe9; --warn: #b54708; --warn-soft: #fdf0e3;
+  --danger: #b42318; --new: #6941c6; --new-soft: #efe9fb;
+  --p0: #1d5fa8; --p0-soft: #e3edf8; --p1: #b0357a; --p1-soft: #f8e6f0;
+  --radius: 12px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 1px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --panel: #1d2024; --ink: #e8e6e3; --muted: #9aa0a6; --line: #2e3237;
+    --accent: #6cc3a5; --accent-soft: #1f3530; --warn: #f5a35c; --warn-soft: #3a2a1c;
+    --danger: #f97066; --new: #b69cf6; --new-soft: #2d2640;
+    --p0: #7fb2ea; --p0-soft: #1f2d3d; --p1: #ec8cc0; --p1-soft: #3a2230;
+    --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171a; --panel: #1d2024; --ink: #e8e6e3; --muted: #9aa0a6; --line: #2e3237;
+  --accent: #6cc3a5; --accent-soft: #1f3530; --warn: #f5a35c; --warn-soft: #3a2a1c;
+  --danger: #f97066; --new: #b69cf6; --new-soft: #2d2640;
+  --p0: #7fb2ea; --p0-soft: #1f2d3d; --p1: #ec8cc0; --p1-soft: #3a2230;
+  --shadow: none;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: inherit; }
+button, input, select { font: inherit; color: inherit; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 20px 16px 60px; }
+
+/* lock screen */
+#lock { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+#lock form { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 28px; width: 100%; max-width: 360px; box-shadow: var(--shadow); }
+#lock h1 { margin: 0 0 4px; font-size: 22px; display: flex; gap: 10px; align-items: center; }
+#lock p { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+#lock input[type=password] { width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+  border-radius: 8px; background: var(--bg); }
+#lock label { display: flex; gap: 8px; align-items: center; margin: 12px 0 16px; font-size: 14px; color: var(--muted); }
+#lock button { width: 100%; padding: 10px; border: 0; border-radius: 8px; background: var(--accent);
+  color: #fff; font-weight: 600; cursor: pointer; }
+:root[data-theme="dark"] #lock button { color: #0d1512; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #lock button { color: #0d1512; } }
+#lockmsg { min-height: 20px; margin-top: 10px; font-size: 14px; color: var(--danger); }
+
+/* header */
+header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+header h1 { margin: 0; font-size: 22px; display: flex; gap: 10px; align-items: center; }
+.sub { color: var(--muted); font-size: 13px; }
+.hbtns { display: flex; gap: 6px; }
+.ghost { background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 13px; }
+.ghost:hover { border-color: var(--muted); }
+
+nav { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+nav button { background: none; border: 0; padding: 9px 12px; cursor: pointer; color: var(--muted);
+  border-bottom: 2px solid transparent; white-space: nowrap; font-weight: 500; }
+nav button.on { color: var(--ink); border-bottom-color: var(--accent); }
+nav .count { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 4px; border-radius: 10px;
+  background: var(--line); font-size: 12px; text-align: center; }
+nav .count.hasnew { background: var(--new); color: #fff; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.filters input[type=search] { flex: 1 1 200px; min-width: 0; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.filters select { padding: 7px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); max-width: 100%; }
+.filters label { font-size: 13px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.filters input[type=range] { width: 90px; }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px;
+  margin-bottom: 10px; box-shadow: var(--shadow); }
+.card.hidden { opacity: .55; }
+.card.isnew { border-left: 3px solid var(--new); }
+.card h3 { margin: 0 0 6px; font-size: 16px; line-height: 1.35; }
+.card h3 a { text-decoration: none; }
+.card h3 a:hover { text-decoration: underline; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 20px; background: var(--bg); border: 1px solid var(--line); font-size: 12px; color: var(--ink); white-space: nowrap; }
+.chip.new { background: var(--new-soft); color: var(--new); border-color: transparent; font-weight: 600; }
+.chip.dl { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.chip.dl.soon { background: var(--warn-soft); color: var(--warn); }
+.chip.dl.past { color: var(--muted); background: var(--bg); text-decoration: line-through; }
+.chip.p0 { background: var(--p0-soft); color: var(--p0); border-color: transparent; font-weight: 600; }
+.chip.p1 { background: var(--p1-soft); color: var(--p1); border-color: transparent; font-weight: 600; }
+.kw { font-size: 12.5px; color: var(--muted); margin: 0 0 6px; }
+.kw b { font-weight: 600; }
+.snip { font-size: 13.5px; color: var(--ink); opacity: .85; margin: 0; overflow-wrap: anywhere; }
+.changes { margin: 6px 0 0; padding-left: 18px; font-size: 13.5px; }
+.changes li { margin: 2px 0; }
+.actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.actions button { background: transparent; border: 1px solid var(--line); border-radius: 8px; padding: 3px 10px; font-size: 13px; cursor: pointer; }
+.actions button.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.actions .src { margin-left: auto; font-size: 12px; color: var(--muted); align-self: center; }
+.empty { text-align: center; color: var(--muted); padding: 40px 10px; }
+
+table.health { width: 100%; border-collapse: collapse; font-size: 13.5px; background: var(--panel); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); }
+table.health th, table.health td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+table.health th { font-weight: 600; color: var(--muted); font-size: 12.5px; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.dot.bad { background: var(--danger); }
+.tablewrap { overflow-x: auto; }
+@media (max-width: 560px) {
+  .card { padding: 12px; }
+  .actions .src { margin-left: 0; width: 100%; }
+  table.health .hide-sm { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="lock">
+  <form id="lockform" autocomplete="on">
+    <h1><svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="3" style="color:var(--accent)"/><circle cx="16" cy="16" r="7" fill="none" stroke="currentColor" stroke-width="3" style="color:var(--accent)"/><circle cx="16" cy="16" r="2.5" fill="currentColor" style="color:var(--accent)"/></svg>PhD Radar</h1>
+    <p>Enter the password to decrypt the listings.</p>
+    <input type="text" name="username" value="phd-radar" autocomplete="username" hidden>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="Password" required autofocus>
+    <label><input id="remember" type="checkbox"> Remember on this device</label>
+    <button type="submit" id="unlock">Unlock</button>
+    <div id="lockmsg" role="status"></div>
+  </form>
+</div>
+
+<div id="app" class="wrap" hidden>
+  <header>
+    <div>
+      <h1>PhD Radar</h1>
+      <div class="sub" id="updated"></div>
+    </div>
+    <div class="hbtns">
+      <button class="ghost" id="markseen" title="Clear all NEW badges">Mark all seen</button>
+      <button class="ghost" id="theme" title="Switch light/dark theme">Theme</button>
+      <button class="ghost" id="lockbtn" title="Forget the password on this device">Lock</button>
+    </div>
+  </header>
+  <nav id="tabs"></nav>
+  <div class="filters" id="filters">
+    <input type="search" id="q" placeholder="Search title, keyword, university…">
+    <select id="country"><option value="">All countries</option></select>
+    <select id="status">
+      <option value="open">Open, not hidden</option>
+      <option value="new">New only</option>
+      <option value="star">★ Interested</option>
+      <option value="applied">✓ Applied</option>
+      <option value="hidden">Hidden</option>
+      <option value="all">Everything</option>
+    </select>
+    <select id="sort">
+      <option value="score">Best match</option>
+      <option value="new">Newest</option>
+      <option value="deadline">Deadline</option>
+    </select>
+    <label id="minwrap">min score <input type="range" id="min" min="0" max="30" value="6"><span id="minval">6</span></label>
+  </div>
+  <main id="list"></main>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem("radar." + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem("radar." + k, JSON.stringify(v)); } catch {} },
+    del(k) { try { localStorage.removeItem("radar." + k); } catch {} },
+  };
+
+  // ---------------------------------------------------------------- theme
+  const applyTheme = (t) => { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; };
+  applyTheme(store.get("theme", null));
+  $("#theme").onclick = () => {
+    const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+    const cur = document.documentElement.dataset.theme || (dark ? "dark" : "light");
+    const next = cur === "dark" ? "light" : "dark";
+    applyTheme(next); store.set("theme", next);
+  };
+
+  // ---------------------------------------------------------------- decryption
+  const b64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  async function decrypt(env, password) {
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
+    const key = await crypto.subtle.deriveKey(
+      { name: "PBKDF2", hash: "SHA-256", salt: b64(env.salt), iterations: env.iter },
+      base, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+    const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64(env.iv) }, key, b64(env.data));
+    const stream = new Blob([plain]).stream().pipeThrough(new DecompressionStream("gzip"));
+    return JSON.parse(await new Response(stream).text());
+  }
+
+  let ENV = null;
+  async function loadEnvelope() {
+    if (ENV) return ENV;
+    const r = await fetch("data.enc?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("The data file is not published yet (HTTP " + r.status + ").");
+    ENV = await r.json();
+    return ENV;
+  }
+
+  async function unlock(password, remember) {
+    const msg = $("#lockmsg");
+    msg.textContent = "Decrypting…"; msg.style.color = "var(--muted)";
+    try {
+      const env = await loadEnvelope();
+      let data;
+      try { data = await decrypt(env, password); }
+      catch { throw new Error("Wrong password."); }
+      if (remember) store.set("pw", password);
+      start(data);
+    } catch (e) {
+      msg.style.color = "var(--danger)"; msg.textContent = e.message;
+      store.del("pw");
+    }
+  }
+
+  $("#lockform").onsubmit = (e) => { e.preventDefault(); unlock($("#pw").value, $("#remember").checked); };
+  $("#lockbtn").onclick = () => { store.del("pw"); location.reload(); };
+  const saved = store.get("pw", null);
+  if (saved) unlock(saved, true);
+
+  // ---------------------------------------------------------------- app
+  let D, PIDS, tab, lastVisit;
+  const marks = store.get("marks", {});          // id -> "star" | "applied" | "hidden"
+  const saveMarks = () => store.set("marks", marks);
+
+  function start(data) {
+    D = data;
+    PIDS = Object.keys(D.profiles || {});
+    lastVisit = store.get("lastVisit", null);
+    setTimeout(() => store.set("lastVisit", D.generated), 4000);
+    $("#lock").hidden = true; $("#app").hidden = false;
+    const gen = new Date(D.generated);
+    const bad = Object.values(D.sources).filter((s) => s.ok === false).length;
+    $("#updated").textContent = `Updated ${fmtAgo(gen)} · ${Object.keys(D.sources).length} sources` +
+      (bad ? ` · ${bad} failing` : "") + (lastVisit ? ` · last visit ${fmtAgo(new Date(lastVisit))}` : "");
+    const countries = [...new Set(Object.values(D.postings).map((p) => p.country).filter(Boolean))].sort();
+    for (const c of countries) $("#country").add(new Option(c, c));
+    const minSaved = store.get("min", 6);
+    $("#min").value = minSaved; $("#minval").textContent = minSaved;
+    tab = store.get("tab", PIDS[0] || "all");
+    for (const id of ["q", "country", "status", "sort", "min"]) $("#" + id).oninput = () => {
+      if (id === "min") { $("#minval").textContent = $("#min").value; store.set("min", +$("#min").value); }
+      render();
+    };
+    $("#markseen").onclick = () => { lastVisit = D.generated; store.set("lastVisit", D.generated); render(); };
+    render();
+  }
+
+  const isNew = (p) => !lastVisit || (p.updated || p.first_seen) > lastVisit;
+  const best = (p) => Math.max(0, ...PIDS.map((k) => (p.scores || {})[k] || 0));
+
+  function tabItems(t) {
+    const all = Object.values(D.postings);
+    if (t === "schools") return all.filter((p) => p.watch);
+    const pos = all.filter((p) => !p.watch);
+    if (t === "all") return pos.filter((p) => p.math !== false);
+    return pos;  // person tab: filtered by score in render
+  }
+
+  function renderTabs() {
+    const min = +$("#min").value;
+    const defs = [
+      ...PIDS.map((k, i) => ({ id: k, label: D.profiles[k].name, items: tabItems(k).filter((p) => (p.scores[k] || 0) >= min) })),
+      { id: "all", label: "All maths PhDs", items: tabItems("all") },
+      { id: "schools", label: "Schools & pages", items: tabItems("schools") },
+      { id: "sources", label: "Sources", items: null },
+    ];
+    if (!defs.some((d) => d.id === tab)) tab = defs[0].id;
+    $("#tabs").innerHTML = "";
+    for (const d of defs) {
+      const b = document.createElement("button");
+      b.className = d.id === tab ? "on" : "";
+      b.textContent = d.label;
+      if (d.items) {
+        const vis = d.items.filter((p) => marks[p.id] !== "hidden" && (p.watch || !p.deadline || p.deadline >= today()));
+        const n = vis.filter(isNew).length;
+        const c = document.createElement("span");
+        c.className = "count" + (n ? " hasnew" : "");
+        c.textContent = n ? `${n} new` : vis.length;
+        b.append(c);
+      }
+      b.onclick = () => { tab = d.id; store.set("tab", tab); render(); };
+      $("#tabs").append(b);
+    }
+  }
+
+  function render() {
+    renderTabs();
+    const list = $("#list");
+    list.innerHTML = "";
+    const personTab = PIDS.includes(tab);
+    $("#filters").hidden = tab === "sources";
+    $("#minwrap").hidden = !personTab;
+    if (tab === "sources") return renderSources(list);
+
+    const q = $("#q").value.trim().toLowerCase();
+    const country = $("#country").value, status = $("#status").value, sort = $("#sort").value;
+    const min = +$("#min").value;
+    let items = tabItems(tab).filter((p) => {
+      if (personTab && (p.scores[tab] || 0) < min) return false;
+      if (country && p.country !== country) return false;
+      const m = marks[p.id];
+      if (status === "open" && (m === "hidden" || (!p.watch && p.deadline && p.deadline < today()))) return false;
+      if (status === "new" && (!isNew(p) || m === "hidden")) return false;
+      if (["star", "applied", "hidden"].includes(status) && m !== status) return false;
+      if (q) {
+        const hay = [p.title, p.snippet, p.source, p.country, ...(Object.values(p.matched || {}).flat())].join(" ").toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    const scoreOf = (p) => personTab ? (p.scores[tab] || 0) : best(p);
+    const dl = (p) => p.deadline && p.deadline >= today() ? p.deadline : "9999";
+    const cmp = {
+      score: (a, b) => scoreOf(b) - scoreOf(a) || (b.updated || "").localeCompare(a.updated || ""),
+      new: (a, b) => (b.updated || b.first_seen).localeCompare(a.updated || a.first_seen),
+      deadline: (a, b) => dl(a).localeCompare(dl(b)) || scoreOf(b) - scoreOf(a),
+    }[sort];
+    items.sort(cmp);
+    if (!items.length) {
+      list.innerHTML = `<div class="empty">${personTab
+        ? "Nothing at or above this score yet. Lower the “min score” slider to see weaker matches."
+        : "Nothing matches these filters."}</div>`;
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    for (const p of items.slice(0, 400)) frag.append(card(p, personTab));
+    list.append(frag);
+  }
+
+  function card(p, personTab) {
+    const el = document.createElement("article");
+    const m = marks[p.id];
+    el.className = "card" + (isNew(p) ? " isnew" : "") + (m === "hidden" ? " hidden" : "");
+    const h = document.createElement("h3");
+    const a = document.createElement("a");
+    a.href = p.url; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = p.title;
+    h.append(a); el.append(h);
+
+    const meta = document.createElement("div"); meta.className = "meta";
+    if (isNew(p)) meta.append(chip(p.watch && p.changed_at ? "UPDATED" : "NEW", "new"));
+    PIDS.forEach((k, i) => { const s = (p.scores || {})[k] || 0; if (s > 0) meta.append(chip(`${D.profiles[k].name} ${s}`, "p" + (i % 2))); });
+    if (p.country) meta.append(chip(p.country));
+    if (p.deadline) {
+      const days = Math.round((new Date(p.deadline) - new Date(today())) / 864e5);
+      const cls = "dl" + (days < 0 ? " past" : days <= 14 ? " soon" : "");
+      meta.append(chip(`deadline ${fmtDate(p.deadline)}` + (days >= 0 ? ` · ${days}d` : ""), cls));
+    }
+    meta.append(txt(p.watch ? `watching since ${fmtDate(p.first_seen)}` : `found ${fmtDate(p.first_seen)}`));
+    el.append(meta);
+
+    const kws = PIDS.map((k) => (p.matched || {})[k] || []).flat();
+    if (kws.length) {
+      const kw = document.createElement("p"); kw.className = "kw";
+      kw.innerHTML = "matches: " + [...new Set(kws)].slice(0, 10).map((k) => `<b>${esc(k)}</b>`).join(", ");
+      el.append(kw);
+    }
+    if (p.watch && p.changes && p.changes.length) {
+      const t = document.createElement("div"); t.className = "sub";
+      t.textContent = `New on this page ${p.changed_at ? "(" + fmtDate(p.changed_at) + ")" : ""}:`;
+      const ul = document.createElement("ul"); ul.className = "changes";
+      for (const c of p.changes.slice(0, 10)) { const li = document.createElement("li"); li.textContent = c; ul.append(li); }
+      el.append(t, ul);
+    } else if (p.snippet) {
+      const s = document.createElement("p"); s.className = "snip"; s.textContent = p.snippet; el.append(s);
+    }
+
+    const act = document.createElement("div"); act.className = "actions";
+    for (const [k, label] of [["star", "★ Interested"], ["applied", "✓ Applied"], ["hidden", "✕ Hide"]]) {
+      const b = document.createElement("button");
+      b.textContent = label; b.className = m === k ? "on" : "";
+      b.onclick = () => { if (marks[p.id] === k) delete marks[p.id]; else marks[p.id] = k; saveMarks(); render(); };
+      act.append(b);
+    }
+    const src = document.createElement("span"); src.className = "src"; src.textContent = p.source; act.append(src);
+    el.append(act);
+    return el;
+  }
+
+  function renderSources(list) {
+    const rows = Object.entries(D.sources).sort((a, b) => (a[1].ok === b[1].ok ? a[0].localeCompare(b[0]) : a[1].ok ? 1 : -1));
+    const wrap = document.createElement("div"); wrap.className = "tablewrap";
+    const t = document.createElement("table"); t.className = "health";
+    t.innerHTML = `<thead><tr><th></th><th>Source</th><th class="hide-sm">Type</th><th>Found</th><th>Kept</th><th class="hide-sm">Last OK</th></tr></thead>`;
+    const tb = document.createElement("tbody");
+    for (const [name, s] of rows) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td><span class="dot ${s.ok ? "" : "bad"}"></span></td>
+        <td><a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(name)}</a>
+          ${s.ok ? "" : `<div class="sub" style="color:var(--danger)">${esc(s.error || "")} · failed ${s.fails}×</div>`}</td>
+        <td class="hide-sm">${esc(s.type)}${s.kind && s.kind !== "position" ? " · " + esc(s.kind) : ""}</td>
+        <td>${s.found ?? "–"}</td><td>${s.kept ?? 0}</td>
+        <td class="hide-sm">${s.last_ok ? fmtAgo(new Date(s.last_ok)) : "never"}</td>`;
+      tb.append(tr);
+    }
+    t.append(tb); wrap.append(t); list.append(wrap);
+  }
+
+  // ---------------------------------------------------------------- helpers
+  function chip(text, cls) { const s = document.createElement("span"); s.className = "chip" + (cls ? " " + cls : ""); s.textContent = text; return s; }
+  function txt(t) { const s = document.createElement("span"); s.textContent = t; return s; }
+  function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  function today() { return new Date().toISOString().slice(0, 10); }
+  function fmtDate(s) { return new Date(s).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }); }
+  function fmtAgo(d) {
+    const m = Math.round((Date.now() - d) / 6e4);
+    if (m < 60) return `${Math.max(m, 1)} min ago`;
+    if (m < 60 * 24) return `${Math.round(m / 60)} h ago`;
+    return `${Math.round(m / 1440)} days ago`;
+  }
+})();
+</script>
+</body>
+</html>
