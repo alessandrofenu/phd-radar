@@ -122,7 +122,8 @@ COUNTRIES = {
     "Estonia": ["estonia", "tartu", "tallinn"],
     "Finland": ["finland", "suomi", "helsinki", "aalto", "turku", "tampere", "jyvaskyla", "oulu"],
     "France": ["france", "paris", "lyon", "marseille", "toulouse", "bordeaux", "lille", "strasbourg",
-               "grenoble", "montpellier", "nantes", "rennes", "nice", "dijon", "orsay", "saclay"],
+               "grenoble", "montpellier", "nantes", "rennes", "dijon", "orsay", "saclay", "jussieu",
+               "sorbonne", "villetaneuse", "palaiseau", "nancy", "clermont ferrand", "besancon", "angers"],
     "Germany": ["germany", "deutschland", "berlin", "bonn", "munich", "munchen", "hamburg", "heidelberg",
                 "munster", "regensburg", "gottingen", "karlsruhe", "leipzig", "freiburg", "frankfurt",
                 "cologne", "koln", "dresden", "aachen", "bielefeld", "augsburg", "mainz", "stuttgart"],
@@ -153,6 +154,26 @@ COUNTRIES = {
                        "edinburgh", "glasgow", "manchester", "durham", "warwick", "bristol", "bath", "leeds",
                        "sheffield", "nottingham", "birmingham", "southampton", "aberdeen", "st andrews",
                        "liverpool", "leicester", "exeter", "york", "lancaster", "cardiff", "belfast"],
+    # ── outside Europe ──
+    "Turkey": ["turkey", "turkiye", "istanbul", "ankara"],
+    "Israel": ["israel", "tel aviv", "jerusalem", "haifa", "technion", "weizmann", "rehovot"],
+    "Japan": ["japan", "nippon", "tokyo", "kyoto", "osaka", "nagoya", "sendai", "tohoku", "hokkaido", "sapporo",
+              "fukuoka", "kyushu", "okinawa", "oist", "tsukuba", "kobe", "hiroshima", "riken", "waseda", "keio",
+              "kurims", "kavli ipmu"],
+    "China": ["china", "people s republic", "beijing", "peking", "tsinghua", "shanghai", "fudan", "shenzhen",
+              "sustech", "hangzhou", "zhejiang", "westlake", "nanjing", "wuhan", "hefei", "ustc", "guangzhou",
+              "chengdu", "xiamen", "tianjin", "nankai", "bimsa", "ymsc", "bicmr", "qiuzhen", "shandong"],
+    "Hong Kong": ["hong kong", "hkust", "cuhk", "hkpfs"],
+    "Taiwan": ["taiwan", "taipei", "hsinchu", "academia sinica"],
+    "South Korea": ["korea", "seoul", "kaist", "postech", "kias", "daejeon", "pohang"],
+    "Singapore": ["singapore"],
+    "India": ["india", "bangalore", "bengaluru", "mumbai", "chennai", "kolkata", "delhi", "iisc", "tifr"],
+    "Australia": ["australia", "sydney", "melbourne", "canberra", "brisbane", "adelaide", "monash"],
+    "New Zealand": ["new zealand", "auckland"],
+    "Canada": ["canada", "toronto", "montreal", "vancouver", "ottawa", "mcgill", "quebec", "calgary", "edmonton"],
+    "United States": ["united states", "usa", "new york", "california", "massachusetts", "princeton", "harvard",
+                      "stanford", "berkeley", "chicago", "boston", "texas", "michigan", "seattle"],
+    "Brazil": ["brazil", "brasil", "rio de janeiro", "sao paulo", "impa"],
 }
 _COUNTRY_RX = [(c, re.compile(r"(?<![a-z0-9])(?:" + "|".join(map(re.escape, names)) + r")(?![a-z0-9])"))
                for c, names in COUNTRIES.items()]
@@ -167,3 +188,47 @@ def find_country(text: str):
         if m and (best is None or m.start() < best[0]):
             best = (m.start(), c)
     return best[1] if best else None
+
+
+ASIA = {"Turkey", "Israel", "Japan", "China", "Hong Kong", "Taiwan", "South Korea", "Singapore", "India"}
+OCEANIA = {"Australia", "New Zealand"}
+AMERICAS = {"Canada", "United States", "Brazil"}
+
+
+def region_of(country):
+    """Europe / Asia / Oceania / Americas, or '' for an unknown country."""
+    if not country:
+        return ""
+    for name, group in (("Asia", ASIA), ("Oceania", OCEANIA), ("Americas", AMERICAS)):
+        if country in group:
+            return name
+    return "Europe" if country in COUNTRIES else ""
+
+
+# ---------------------------------------------------------------- Paris
+
+# Campuses just outside the city, listed first so that "Paris-Saclay" or "Paris Nord" is not read as Paris.
+PARIS_AREA = {
+    "paris saclay": "Saclay", "saclay": "Saclay", "orsay": "Orsay", "gif sur yvette": "Gif-sur-Yvette",
+    "bures sur yvette": "Bures-sur-Yvette", "ihes": "Bures-sur-Yvette", "palaiseau": "Palaiseau",
+    "ecole polytechnique": "Palaiseau", "institut polytechnique de paris": "Palaiseau", "ip paris": "Palaiseau",
+    "sorbonne paris nord": "Villetaneuse", "paris nord": "Villetaneuse", "paris 13": "Villetaneuse",
+    "paris xiii": "Villetaneuse", "villetaneuse": "Villetaneuse", "univ spn": "Villetaneuse",
+    "bobigny": "Bobigny", "paris est": "Créteil / Marne-la-Vallée", "creteil": "Créteil",
+    "marne la vallee": "Marne-la-Vallée", "champs sur marne": "Marne-la-Vallée", "gustave eiffel": "Marne-la-Vallée",
+    "cergy": "Cergy", "evry": "Évry", "versailles": "Versailles", "saint quentin en yvelines": "Versailles",
+    "nanterre": "Nanterre", "paris 8": "Saint-Denis", "saint denis": "Saint-Denis",
+}
+PARIS_CITY = ["paris", "jussieu", "sorbonne universite", "sorbonne university", "imj prg", "ljll", "lpsm", "irif",
+              "institut henri poincare", "college de france", "ens ulm", "ecole normale superieure psl", "psl",
+              "sophie germain", "fsmp", "sciences mathematiques de paris"]
+_PARIS_RX = re.compile(r"(?<![a-z0-9])(" + "|".join(map(re.escape, list(PARIS_AREA) + PARIS_CITY)) + r")(?![a-z0-9])")
+
+
+def find_city(text: str):
+    """'Paris', 'Paris area (Saclay)' and so on, from the earliest Paris-related name in text; else None."""
+    m = _PARIS_RX.search(norm(text))
+    if not m:
+        return None
+    town = PARIS_AREA.get(m.group(1))
+    return f"Paris area ({town})" if town else "Paris"

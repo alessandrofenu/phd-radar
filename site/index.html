@@ -89,6 +89,7 @@ nav .count.hasnew { background: var(--new); color: #fff; }
 .chip.dl.soon { background: var(--warn-soft); color: var(--warn); }
 .chip.dl.past { color: var(--muted); background: var(--bg); text-decoration: line-through; }
 .chip.p0 { background: var(--p0-soft); color: var(--p0); border-color: transparent; font-weight: 600; }
+.chip.paris { background: var(--warn-soft); color: var(--warn); border-color: transparent; font-weight: 600; }
 .chip.p1 { background: var(--p1-soft); color: var(--p1); border-color: transparent; font-weight: 600; }
 .kw { font-size: 12.5px; color: var(--muted); margin: 0 0 6px; }
 .kw b { font-weight: 600; }
@@ -143,7 +144,7 @@ table.health th { font-weight: 600; color: var(--muted); font-size: 12.5px; }
   <nav id="tabs"></nav>
   <div class="filters" id="filters">
     <input type="search" id="q" placeholder="Search title, keyword, university…">
-    <select id="country"><option value="">All countries</option></select>
+    <select id="country"><option value="">Everywhere</option></select>
     <select id="status">
       <option value="open">Open, not hidden</option>
       <option value="new">New only</option>
@@ -205,18 +206,36 @@ table.health th { font-weight: 600; color: var(--muted); font-size: 12.5px; }
 
   async function unlock(password, remember) {
     const msg = $("#lockmsg");
+    password = password.normalize("NFC").trim();
+    if (!window.isSecureContext || !window.crypto || !crypto.subtle) {
+      msg.style.color = "var(--danger)";
+      msg.textContent = "This page must be opened with https:// – browsers block decryption on plain http pages.";
+      return;
+    }
+    if (typeof DecompressionStream === "undefined") {
+      msg.style.color = "var(--danger)";
+      msg.textContent = "This browser is too old to open the dashboard. Please update it.";
+      return;
+    }
     msg.textContent = "Decrypting…"; msg.style.color = "var(--muted)";
     try {
       const env = await loadEnvelope();
       let data;
       try { data = await decrypt(env, password); }
-      catch { throw new Error("Wrong password."); }
+      catch (e) {
+        if (e && e.name === "OperationError") throw new Error("Wrong password.");
+        throw new Error("Could not open the data: " + (e && e.message || e));
+      }
       if (remember) store.set("pw", password);
       start(data);
     } catch (e) {
       msg.style.color = "var(--danger)"; msg.textContent = e.message;
       store.del("pw");
     }
+  }
+
+  if (location.protocol === "http:" && !/^(localhost|127\.|\[::1\])/.test(location.hostname)) {
+    $("#lockmsg").textContent = "Open this page with https:// to unlock it.";
   }
 
   $("#lockform").onsubmit = (e) => { e.preventDefault(); unlock($("#pw").value, $("#remember").checked); };
@@ -239,8 +258,19 @@ table.health th { font-weight: 600; color: var(--muted); font-size: 12.5px; }
     const bad = Object.values(D.sources).filter((s) => s.ok === false).length;
     $("#updated").textContent = `Updated ${fmtAgo(gen)} · ${Object.keys(D.sources).length} sources` +
       (bad ? ` · ${bad} failing` : "") + (lastVisit ? ` · last visit ${fmtAgo(new Date(lastVisit))}` : "");
-    const countries = [...new Set(Object.values(D.postings).map((p) => p.country).filter(Boolean))].sort();
-    for (const c of countries) $("#country").add(new Option(c, c));
+    // Location filter: Paris first, then regions, then each country (grouped by region).
+    const all = Object.values(D.postings);
+    const sel = $("#country");
+    if (all.some(isParis)) sel.add(new Option("📍 Paris & Île-de-France", "paris"));
+    const REGIONS = ["Europe", "Asia", "Oceania", "Americas"];
+    for (const r of REGIONS) if (all.some((p) => p.region === r)) sel.add(new Option(`All of ${r}`, "region:" + r));
+    for (const r of [...REGIONS, ""]) {
+      const cs = [...new Set(all.filter((p) => (p.region || "") === r).map((p) => p.country).filter(Boolean))].sort();
+      if (!cs.length) continue;
+      const g = document.createElement("optgroup"); g.label = r || "Other";
+      for (const c of cs) g.append(new Option(c, c));
+      sel.append(g);
+    }
     const minSaved = store.get("min", 6);
     $("#min").value = minSaved; $("#minval").textContent = minSaved;
     tab = store.get("tab", PIDS[0] || "all");
@@ -304,13 +334,14 @@ table.health th { font-weight: 600; color: var(--muted); font-size: 12.5px; }
     const min = +$("#min").value;
     let items = tabItems(tab).filter((p) => {
       if (personTab && (p.scores[tab] || 0) < min) return false;
-      if (country && p.country !== country) return false;
+      if (country === "paris" ? !isParis(p) : country.startsWith("region:") ? p.region !== country.slice(7)
+          : country && p.country !== country) return false;
       const m = marks[p.id];
       if (status === "open" && (m === "hidden" || (!p.watch && p.deadline && p.deadline < today()))) return false;
       if (status === "new" && (!isNew(p) || m === "hidden")) return false;
       if (["star", "applied", "hidden"].includes(status) && m !== status) return false;
       if (q) {
-        const hay = [p.title, p.snippet, p.source, p.country, ...(Object.values(p.matched || {}).flat())].join(" ").toLowerCase();
+        const hay = [p.title, p.snippet, p.source, p.country, p.city, ...(Object.values(p.matched || {}).flat())].join(" ").toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
@@ -346,6 +377,8 @@ table.health th { font-weight: 600; color: var(--muted); font-size: 12.5px; }
     const meta = document.createElement("div"); meta.className = "meta";
     if (isNew(p)) meta.append(chip(p.watch && p.changed_at ? "UPDATED" : "NEW", "new"));
     PIDS.forEach((k, i) => { const s = (p.scores || {})[k] || 0; if (s > 0) meta.append(chip(`${D.profiles[k].name} ${s}`, "p" + (i % 2))); });
+    if (isParis(p)) meta.append(chip("📍 " + p.city, "paris"));
+    else if (p.city) meta.append(chip(p.city));
     if (p.country) meta.append(chip(p.country));
     if (p.deadline) {
       const days = Math.round((new Date(p.deadline) - new Date(today())) / 864e5);
@@ -404,6 +437,7 @@ table.health th { font-weight: 600; color: var(--muted); font-size: 12.5px; }
 
   // ---------------------------------------------------------------- helpers
   function chip(text, cls) { const s = document.createElement("span"); s.className = "chip" + (cls ? " " + cls : ""); s.textContent = text; return s; }
+  function isParis(p) { return (p.city || "").startsWith("Paris"); }
   function txt(t) { const s = document.createElement("span"); s.textContent = t; return s; }
   function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
   function today() { return new Date().toISOString().slice(0, 10); }

@@ -10,7 +10,7 @@ import yaml
 
 from .extract import from_feed, from_html, page_text, page_urls, soup_of
 from .fetch import Fetcher
-from .text import Terms, clean, find_country, find_deadline, norm
+from .text import Terms, clean, find_city, find_country, find_deadline, norm, region_of
 
 ROOT = Path(__file__).resolve().parent.parent
 KINDS = ("position", "school", "group")
@@ -47,6 +47,8 @@ class Config:
                 raise ValueError(f"{s['name']}: kind must be one of {KINDS}")
             f = s.get("filter", ["phd", "math"])
             s["filter"] = [f] if isinstance(f, str) else list(f or [])
+            r = s.get("regions") or (["Europe"] if s.get("europe_only") else [])
+            s["regions"] = [r] if isinstance(r, str) else list(r)
             self.sources.append(s)
         names = [s["name"] for s in self.sources]
         dup = {n for n in names if names.count(n) > 1}
@@ -125,7 +127,7 @@ def scan_listing(src, cfg, fetcher, known, rejected, only_new=True):
     """Candidates from a listing source; returns (raw_count, [posting], [seen_known_ids], [rejected_ids])."""
     raw = []
     for u in page_urls(src):
-        text = fetcher.get(u, delay=src.get("delay"))
+        text = fetcher.get(u, delay=src.get("delay"), verify=src.get("verify_ssl", True))
         raw += from_feed(text, u) if src["type"] == "rss" else from_html(text, u, src)
     seen_known, out, dropped, details_left = [], [], [], int(src.get("max_details", 20))
     uniq = {}
@@ -151,7 +153,7 @@ def scan_listing(src, cfg, fetcher, known, rejected, only_new=True):
                 continue  # picked up on a later run
             details_left -= 1
             try:
-                html = fetcher.get(it["url"], delay=src.get("delay"))
+                html = fetcher.get(it["url"], delay=src.get("delay"), verify=src.get("verify_ssl", True))
             except Exception:
                 html = None
             if html is not None:
@@ -171,10 +173,15 @@ def scan_listing(src, cfg, fetcher, known, rejected, only_new=True):
         is_math = cfg.math.any(norm(it["title"] + " " + it["context"])) or cfg.math_count(text_n) >= 3
         deadline = find_deadline(it["context"]) or find_deadline(body)
         country = find_country(it["title"] + " " + it["context"]) or find_country(body[:3000])
+        city = None
+        if (country or src.get("country")) in ("France", None, ""):
+            city = find_city(it["title"] + " " + it["context"]) or find_city(body[:1500])
+            if city and not country:
+                country = "France"
         ctx_n = norm(it["title"] + " " + it["context"])
         if not cfg.passes(src["filter"], title_n, ctx_n, text_n if detailed else None, scores) or (
                 deadline and deadline < date.today().isoformat()) or (
-                src.get("europe_only") and not country):
+                src["regions"] and region_of(country) not in src["regions"]):
             if detailed:
                 dropped.append(pid)  # remember, so its page is not fetched again
             continue
@@ -183,6 +190,7 @@ def scan_listing(src, cfg, fetcher, known, rejected, only_new=True):
             "id": pid, "url": it["url"], "title": it["title"] or it["url"], "source": src["name"],
             "kind": src["kind"],
             "country": country or src.get("country") or "",
+            "city": city or src.get("city") or "",
             "deadline": deadline,
             "snippet": _snippet(cfg, lines, ctx_rest[:420]) if detailed else ctx_rest[:420],
             "scores": scores, "matched": matched, "detailed": detailed, "math": is_math,
@@ -192,7 +200,7 @@ def scan_listing(src, cfg, fetcher, known, rejected, only_new=True):
 
 def scan_watch(src, cfg, fetcher, prev):
     """A watched page: returns (lines_count, posting, new_watch_state)."""
-    lines = page_text(fetcher.get(src["url"], delay=src.get("delay")), src.get("selector"))
+    lines = page_text(fetcher.get(src["url"], delay=src.get("delay"), verify=src.get("verify_ssl", True)), src.get("selector"))
     interesting = [ln for ln in lines if cfg.watch_terms.any(norm(ln))][:400]
     h = sha("\n".join(interesting))
     added = []
@@ -204,6 +212,7 @@ def scan_watch(src, cfg, fetcher, prev):
     posting = {
         "id": sha("watch:" + src["url"]), "url": src["url"], "title": src["name"], "source": src["name"],
         "kind": src["kind"], "country": src.get("country") or find_country(src["name"] + " " + text) or "",
+        "city": src.get("city") or "",
         "deadline": find_deadline(text), "scores": scores, "matched": matched, "watch": True,
         "changes": added[:15],
         "snippet": " … ".join(ln[:200] for ln in interesting[:6])[:600],
@@ -277,6 +286,10 @@ def scan(cfg, state, only=None, workers=8, log=print):
         h["kept"] = sum(1 for p in state["postings"].values() if p["source"] == s["name"])
 
     prune(state)
+    for p in state["postings"].values():
+        if "city" not in p:  # postings stored before cities were tracked
+            p["city"] = find_city(p["title"] + " " + p.get("snippet", "")) or "" if p.get("country") == "France" else ""
+        p["region"] = region_of(p.get("country"))
     state["generated"] = ts
     state["profiles"] = {pid: {"name": p["name"]} for pid, p in cfg.profiles.items()}
     return state

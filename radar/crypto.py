@@ -3,6 +3,7 @@ import base64
 import gzip
 import json
 import os
+import unicodedata
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -11,7 +12,9 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 ITERATIONS = 400_000
 
 
-def _key(password, salt, iterations):
+def _key(password, salt, iterations, raw=False):
+    if not raw:
+        password = unicodedata.normalize("NFC", password).strip()  # same as the dashboard
     kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=iterations)
     return kdf.derive(password.encode("utf-8"))
 
@@ -28,5 +31,10 @@ def encrypt(obj, password) -> bytes:
 def decrypt(blob: bytes, password):
     env = json.loads(blob)
     salt, iv = base64.b64decode(env["salt"]), base64.b64decode(env["iv"])
-    plain = AESGCM(_key(password, salt, env["iter"])).decrypt(iv, base64.b64decode(env["data"]), None)
+    data = base64.b64decode(env["data"])
+    try:
+        plain = AESGCM(_key(password, salt, env["iter"])).decrypt(iv, data, None)
+    except Exception:
+        # data written before passwords were trimmed
+        plain = AESGCM(_key(password, salt, env["iter"], raw=True)).decrypt(iv, data, None)
     return json.loads(gzip.decompress(plain))

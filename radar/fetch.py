@@ -4,6 +4,9 @@ import time
 from urllib.parse import urlparse
 
 import requests
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
       "Chrome/126.0 Safari/537.36 phd-radar/1.0")
@@ -27,8 +30,10 @@ class Fetcher:
         with self._guard:
             return self._locks.setdefault(host, threading.Lock())
 
-    def get(self, url, delay=None, headers=None, raw=False):
-        """Return the page text (or bytes with raw=True). Raises on failure."""
+    def get(self, url, delay=None, headers=None, raw=False, verify=True):
+        """Return the page text (or bytes with raw=True). Raises on failure.
+
+        verify=False skips certificate checks, for public pages whose server sends an incomplete chain."""
         host = urlparse(url).netloc
         delay = self.delay if delay is None else delay
         err = None
@@ -38,7 +43,7 @@ class Fetcher:
                 if wait > 0:
                     time.sleep(wait)
                 try:
-                    r = self.session.get(url, timeout=self.timeout, headers=headers or {})
+                    r = self.session.get(url, timeout=self.timeout, headers=headers or {}, verify=verify)
                     self._last[host] = time.time()
                     if r.status_code in (429, 500, 502, 503, 504):
                         err = f"HTTP {r.status_code}"

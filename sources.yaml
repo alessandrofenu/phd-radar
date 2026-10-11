@@ -23,7 +23,11 @@
 #    item / link   CSS selectors for listing cards and their link (optional;
 #                  without them every link on the page is considered)
 #    pages / page_param / page_start   follow pagination (?page=1, ?page=2…)
-#    europe_only true = drop postings that do not mention a European country
+#    regions     keep only postings located in these regions, e.g. [Europe, Asia]
+#                (Europe, Asia, Oceania, Americas); europe_only: true = [Europe]
+#    city        e.g. Paris – shown as a 📍 badge; postings in France are also
+#                checked automatically for Paris and its campuses (Saclay, Villetaneuse…)
+#    verify_ssl  false = read a site whose security certificate is misconfigured
 #    enabled     false = keep the entry but skip it
 #
 #  Simplest possible new source (a department page to watch):
@@ -77,11 +81,11 @@ sources:
     filter: [phd]
     details: true
 
-  - name: MathJobs (AMS) – European PhD ads
+  - name: MathJobs (AMS) – PhD ads (Europe, Asia, Oceania)
     url: https://www.mathjobs.org/jobs/job
     link_pattern: /jobs/list/\d+
     filter: [phd]
-    europe_only: true
+    regions: [Europe, Asia, Oceania]
     details: true
     max_details: 30
 
@@ -89,11 +93,11 @@ sources:
     url: https://academicjobsonline.org/ajo/Mathematics
     link_pattern: /ajo/jobs/\d+
     filter: [phd]
-    europe_only: true
+    regions: [Europe, Asia, Oceania]
     details: true
 
-  - name: Nature Careers – Maths PhD positions in Europe
-    url: https://www.nature.com/naturecareers/jobs/mathematics/phd-position/europe/
+  - name: Nature Careers – Maths PhD positions worldwide
+    url: https://www.nature.com/naturecareers/jobs/mathematics/phd-position/
     link_pattern: /naturecareers/job/\d+
     filter: [phd, math]
     details: true
@@ -174,6 +178,120 @@ sources:
     listing_filter: []
     details: true
     max_details: 40
+
+# ─── Paris and Île-de-France ───────────────────────────────────────────────────
+#  Every posting in France is also checked for Paris; these are the Paris-specific feeds.
+
+  - name: ADUM – Paris-Saclay Graduate School of Mathematics
+    url: https://adum.fr/as/ed/proposition.pl?site=gsmaths
+    link_pattern: voirproposition\.pl
+    country: France
+    city: Paris area (Saclay)
+    filter: []
+    details: true
+
+  - name: ADUM – ENS-PSL thesis offers (Paris)
+    url: https://adum.fr/as/ed/proposition.pl?site=ens
+    link_pattern: voirproposition\.pl
+    country: France
+    city: Paris
+    filter: [math, topic]
+    listing_filter: []
+    details: true
+    max_details: 50
+
+  - name: CNRS jobs – latest doctoral offers (France)
+    url: https://emploi.cnrs.fr/Offres/Recherche.aspx
+    link_pattern: /Offres/Doctorant/
+    country: France
+    filter: [phd, math, topic]
+    details: true
+
+  - name: Sorbonne / Paris Cité – ED 386 Mathematical Sciences of Paris Centre
+    type: watch
+    url: https://ed386.sorbonne-universite.fr/fr/index.html
+    verify_ssl: false
+    kind: school
+    country: France
+    city: Paris
+
+  - name: Sorbonne Université – ED 386 page
+    type: watch
+    url: https://www.sorbonne-universite.fr/ecoles-doctorales/sciences-mathematiques-de-paris-centre
+    kind: school
+    country: France
+    city: Paris
+
+  - name: Sorbonne Université – doctoral funding and contracts
+    type: watch
+    url: https://www.sorbonne-universite.fr/recherche-et-innovation/le-doctorat/candidature-et-admission/le-financement
+    kind: school
+    country: France
+    city: Paris
+
+  - name: IMJ-PRG (Jussieu / Paris Cité) – open positions
+    type: watch
+    url: https://www.imj-prg.fr/
+    kind: group
+    country: France
+    city: Paris
+
+  - name: IMJ-PRG – doing a PhD at the institute
+    type: watch
+    url: https://www.imj-prg.fr/preparer-un-these-a-linstitut/
+    kind: school
+    country: France
+    city: Paris
+
+  - name: Université Paris Cité – Graduate School of Mathematical Sciences
+    type: watch
+    url: https://u-paris.fr/en/mathematical-sciences-en/
+    kind: school
+    country: France
+    city: Paris
+
+  - name: Université Paris Cité – doctoral contracts
+    type: watch
+    url: https://u-paris.fr/doctorat/?p=9387
+    kind: school
+    country: France
+    city: Paris
+
+  - name: Sorbonne Paris Nord – ED Galilée, doctoral contracts and thesis topics
+    type: watch
+    url: https://ed-galilee.univ-spn.fr/concours-contrats-doctoraux-et-sujets-de-these-proposes/
+    kind: school
+    country: France
+    city: Paris area (Villetaneuse)
+
+  - name: Sorbonne Paris Nord – ED Galilée, PhD funding
+    type: watch
+    url: https://ed-galilee.univ-spn.fr/financement-de-la-these/
+    kind: school
+    country: France
+    city: Paris area (Villetaneuse)
+
+  - name: FSMP – Paris doctoral programmes
+    type: watch
+    url: https://www.sciencesmaths-paris.fr/en/our-programs/phd/doctoral-programs
+    kind: school
+    country: France
+    city: Paris
+
+  - name: Fondation Hadamard – graduate programme (Paris-Saclay)
+    type: watch
+    url: https://www.fondation-hadamard.fr/en/our-programs/transversal-programs/graduate-program/
+    verify_ssl: false
+    kind: school
+    country: France
+    city: Paris area (Saclay)
+
+  - name: Paris-Saclay – PhD in mathematics (Graduate School)
+    type: watch
+    url: https://www.universite-paris-saclay.fr/en/graduate-schools/graduate-school-mathematiques/phd-mathematics-graduate-school-mathematics
+    kind: school
+    country: France
+    city: Paris area (Saclay)
 
 # ─── University job portals ────────────────────────────────────────────────────
 
@@ -400,12 +518,123 @@ sources:
     url: https://www.imo.universite-paris-saclay.fr/en/students/phd/
     kind: school
     country: France
+    city: Paris area (Saclay)
 
   - name: Warsaw Doctoral School of Mathematics and CS
     type: watch
     url: https://www.mimuw.edu.pl/en/studies/phd-studies/
     kind: school
     country: Poland
+
+# ─── Japan (funded PhD programmes and scholarships) ────────────────────────────
+#  Japanese PhDs are funded mainly through MEXT scholarships or university fellowships;
+#  OIST (fully funded, English) blocks automated reading – check admissions.oist.jp by hand.
+
+  - name: Japan – MEXT scholarship, research students (embassy recommendation)
+    type: watch
+    url: https://www.studyinjapan.go.jp/en/smap-stopj-applications-research.html
+    kind: school
+    country: Japan
+
+  - name: Japan – MEXT Study in Japan (ministry page)
+    type: watch
+    url: https://www.mext.go.jp/en/policy/education/highered/title02/detail02/sdetail02/1373897.htm
+    kind: school
+    country: Japan
+
+  - name: Tokyo – Mathematical Sciences, admission for international students
+    type: watch
+    url: https://www.ms.u-tokyo.ac.jp/kyoumu_e/liaison/guide_e.html
+    kind: school
+    country: Japan
+
+  - name: Tokyo – Mathematical Sciences, International Liaison Office
+    type: watch
+    url: https://www.ms.u-tokyo.ac.jp/kyoumu_e/liaison/index_e.html
+    kind: school
+    country: Japan
+
+  - name: Kyoto – RIMS graduate school
+    type: watch
+    url: https://www.kurims.kyoto-u.ac.jp/en/application-01.html
+    kind: school
+    country: Japan
+
+  - name: Kyoto – Mathematics application guide
+    type: watch
+    url: https://www.math.kyoto-u.ac.jp/en/node/122
+    kind: school
+    country: Japan
+
+  - name: Nagoya – Graduate School of Mathematics admission
+    type: watch
+    url: https://www.math.nagoya-u.ac.jp/en/admission/index.html
+    kind: school
+    country: Japan
+
+  - name: Nagoya – Graduate School of Mathematics job opportunities
+    type: watch
+    url: https://www.math.nagoya-u.ac.jp/en/job/index.html
+    kind: school
+    country: Japan
+
+# ─── China, Hong Kong and the rest of Asia ─────────────────────────────────────
+
+  - name: Tsinghua – YMSC international graduate programme
+    type: watch
+    url: https://ymsc.tsinghua.edu.cn/en/Education/International_Graduate_Program1.htm
+    kind: school
+    country: China
+
+  - name: Tsinghua – Qiuzhen College graduate application (international PhD)
+    type: watch
+    url: https://qzc.tsinghua.edu.cn/en/Admissions/graduate/Application1.htm
+    kind: school
+    country: China
+
+  - name: Tsinghua – Qiuzhen College latest admissions news
+    type: watch
+    url: https://qzc.tsinghua.edu.cn/en/Admissions/graduate/Latest_From_Admissions.htm
+    kind: school
+    country: China
+
+  - name: Peking University – BICMR PhD programme
+    type: watch
+    url: https://bicmr.pku.edu.cn/content/page/78.html
+    kind: school
+    country: China
+
+  - name: Hong Kong PhD Fellowship Scheme (RGC)
+    type: watch
+    url: https://cerg1.ugc.edu.hk/hkpfs/index.html
+    kind: school
+    country: Hong Kong
+
+  - name: HKU – Hong Kong PhD Fellowship Scheme
+    type: watch
+    url: https://gradsch.hku.hk/prospective_students/fees_scholarships_and_financial_support/hong_kong_phd_fellowship_scheme
+    kind: school
+    country: Hong Kong
+
+  - name: HKUST – Mathematics postgraduate programmes
+    type: watch
+    url: https://www.math.hkust.edu.hk/pg
+    kind: school
+    country: Hong Kong
+
+  - name: Weizmann Institute – Feinberg Graduate School (fully funded)
+    type: watch
+    url: https://www.weizmann.ac.il/feinberg/
+    kind: school
+    country: Israel
+
+# ─── Elsewhere ─────────────────────────────────────────────────────────────────
+
+  - name: IMPA (Rio de Janeiro) – funded PhD programme
+    type: watch
+    url: https://impa.br/en_US/
+    kind: school
+    country: Brazil
 
 # ─── Research groups ───────────────────────────────────────────────────────────
 #  Group pages rarely announce positions, so only a few are watched here. Postings

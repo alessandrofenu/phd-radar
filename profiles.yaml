@@ -105,13 +105,14 @@ phd_terms: [phd, ph d, dphil, doctoral, doctorate, doktorand, doktorat, promotio
   doctoranda, doutoramento, predoc, pre doc, early stage researcher, esr, first stage researcher,
   studentship, research student, stipendiat, doktorgrad, doktorandtjänst, väitöskirja,
   graduate school, graduate program, doctoral school, doctoral candidate, doctoral researcher,
-  msca doctoral, doctoral network, bando, bigs, imprs]
+  msca doctoral, doctoral network, bando, bigs, imprs,
+  博士課程, 博士後期, 博士生, 博士研究生, 博士项目, 博士學位]   # Japanese / Chinese
 
 # Terms that identify mathematics. A posting counts as mathematics if one of these appears in
 # its title or listing text, or at least 3 times in its full text.
 math_terms: [mathemat, matemat, mathématique, wiskunde, topolog, algebra, geometr, homotop,
   homology, cohomolog, knot, manifold, number theory, combinatoric, category theory,
-  representation theory, differential equation, probability theory]
+  representation theory, differential equation, probability theory, 数学, 數學, 数理]
 
 # Phrases that, in the full text of a posting, show it really is a doctoral position
 # (a bare "PhD" there is not enough: faculty ads say "PhD required").
@@ -132,4 +133,5 @@ exclude_title_terms: [postdoc, post doc, postdoctoral, post doctoral, professor,
 
 # A title containing one of these is always dropped, even if it also mentions a PhD.
 hard_exclude_title_terms: [with doctorate, mit doktorat, with a doctorate, rank of professor,
-  professorship, post doctoral, postdoctoral, postdoc, coding expert, benchmark specialist]
+  professorship, post doctoral, postdoctoral, postdoc, coding expert, benchmark specialist,
+  博士后, 博士後, 博士研究员]

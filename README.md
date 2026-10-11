@@ -1,6 +1,8 @@
 # PhD Radar
 
-Every 4 hours, GitHub scans ~55 European sources for maths PhD positions, scores each
+Every 4 hours, GitHub scans ~85 sources for maths PhD positions – Europe-wide boards, a
+dedicated Paris / Île-de-France block (Sorbonne, Paris Cité, Sorbonne Paris Nord, PSL,
+Paris-Saclay), and funded programmes in Japan, China, Hong Kong and beyond – scores each
 posting against two research profiles, and publishes a password-protected dashboard on
 GitHub Pages. The listings are encrypted (AES-256) before they leave GitHub's servers,
 so the website and the repository only ever contain unreadable data without the password.
@@ -49,6 +51,10 @@ From then on it runs by itself every 4 hours, and also right after you edit
 - **Alessandro / Girlfriend tabs** show postings scoring at least *min score* for that
   person (slider; 6 ≈ "mentions something clearly relevant"). Lower it to see more.
 - **All maths PhDs** lists every maths doctoral posting found, whatever the topic.
+- **Location filter:** *📍 Paris & Île-de-France*, a whole region (Europe, Asia, …) or one
+  country. Postings in Paris carry an orange 📍 Paris badge; campuses just outside the city
+  say which one, e.g. *📍 Paris area (Villetaneuse)* for Sorbonne Paris Nord or
+  *(Saclay)* for Paris-Saclay.
 - **Schools & pages** shows the watched graduate-school and group pages; when one changes,
   it is marked UPDATED and the new lines are listed.
 - **Sources** shows which sites worked in the last run.
@@ -64,6 +70,20 @@ From then on it runs by itself every 4 hours, and also right after you edit
   manually with **Start from empty data** ticked (old data can't be decrypted any more).
 - **Rename the girlfriend tab:** `name:` under `her:` in `profiles.yaml`.
 
+## Updating the files on GitHub later
+
+The password (`RADAR_PASSWORD` secret), Pages and the schedule all stay as they are: only
+the changed files need uploading.
+
+1. Open the repository on GitHub → **Add file → Upload files**.
+2. Drag in the changed files **and folders** (`sources.yaml`, `profiles.yaml`, `README.md`,
+   `radar`, `site`). Dropping a folder keeps its path, so `radar/engine.py` replaces the
+   old `radar/engine.py`. Then **Commit changes**.
+3. A run starts automatically (Actions tab); the dashboard is updated ~5 minutes later.
+
+Only if `.github/workflows/radar.yml` changed: open it on GitHub, click the pencil
+(✏️ Edit), paste the new contents, **Commit changes**.
+
 ## Running locally (optional)
 
 ```bash
@@ -77,9 +97,13 @@ python -m http.server -d _site 8000               # then open http://localhost:8
 ## Limits worth knowing
 
 - Sites that need a real browser (JavaScript-only search pages) or block bots
-  (FindAPhD, Academic Positions, ScholarshipDB, European Women in Mathematics) are not
-  scanned. Their postings usually also appear on EURAXESS, jobs.ac.uk or the EMS portal.
+  (FindAPhD, Academic Positions, ScholarshipDB, European Women in Mathematics, OIST,
+  Campus France's PhD board) are not scanned. Their postings usually also appear on EURAXESS, jobs.ac.uk or the EMS portal.
 - Italian PhD calls come from the ministry's national list (bandi.mur.gov.it) and the
   watched pages of SISSA, SNS, Pisa and Tor Vergata; most Italian calls open in spring–summer.
+- Asian PhDs are rarely posted as individual positions: they are funded through
+  programme admissions and scholarships (MEXT in Japan, CSC / Qiuzhen in China, HKPFS in
+  Hong Kong), so those appear under **Schools & pages** and are marked UPDATED when a new
+  call is published. Most open between September and December.
 - Keyword matching is literal: a posting in "geometric topology" won't match "knot theory"
   unless it says so. Add synonyms to `profiles.yaml` as you notice gaps.
